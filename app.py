@@ -53,7 +53,7 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-# --- ÖZEL ARKA PLAN VE ENLEMESİNE GENİŞ BUTON TASARIMI ---
+# --- TELEFONA TAM OTURAN MOBİL ARKA PLAN TASARIMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -65,23 +65,14 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        /* BİLGİSAYARLAR İÇİN ARKA PLAN NİZAMI */
+        /* 🚨 REİSİM, RESMİ TELEFON EKRANINA ENİNE VE BOYUNA TAM KİLİTLEYEN NİZAM 🚨 */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-size: 100% 100% !important; /* 🚨 Resmi ekrana tam oturtur, boşluk bırakmaz */
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: scroll !important; /* Telefon klavyeleri açılınca resmin bozulmasını önler */
             color: #FFFFFF;
-        }}
-        
-        /* 🚨 REİSİM, TELEFONLAR İÇİN BOYUTU KÜÇÜLTEN MOBİL AYAR 🚨 */
-        @media (max-width: 768px) {{
-            .stApp {{
-                background-size: contain !important; /* Resmi küçültüp ekrana sığdırır */
-                background-position: top center !important; /* Üstten başlatır */
-                background-color: #121212 !important; /* Resmin bitip ekranın uzadığı alt kısımları siyah asil bir tonda tutar */
-            }}
         }}
         
         h1, h3, h2, p {{
@@ -90,9 +81,10 @@ if os.path.exists(BACKGROUND_IMAGE):
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin-bottom: 5px !important;
             padding-bottom: 5px !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important; /* Yazılar arka planda kaybolmasın diye zırhlı gölge */
         }}
         
-        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU */
+        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU VE SİYAH BOŞLUĞUN SIFIRLANMASI */
         .stFileUploader section {{
             background-color: transparent !important;
             border: none !important;
@@ -116,10 +108,10 @@ if os.path.exists(BACKGROUND_IMAGE):
             border: 2px solid #000000 !important;
             padding: 14px 20px !important;
             width: 100% !important;
-            min-width: 320px !important; 
+            min-width: 280px !important; 
             max-width: 450px !important; 
             border-radius: 12px !important;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4) !important;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
             transition: all 0.3s ease;
             order: 1 !important;
             margin-top: 45px !important;
@@ -169,11 +161,11 @@ if os.path.exists(BACKGROUND_IMAGE):
             text-align: center;
             margin-top: 5px !important;
             display: block;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9) !important;
         }}
         
         .admin-section {{
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             padding: 20px;
             border-radius: 15px;
             border: 1px solid #ff4b4b;
@@ -207,7 +199,6 @@ st.markdown("""
 ### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**
 """)
 
-# Yükleyici hafızasını kontrol altında tutmak için Session State anahtarı
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = "uploader_first"
 
