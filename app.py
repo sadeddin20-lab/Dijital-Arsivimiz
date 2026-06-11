@@ -107,7 +107,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding: 20px;
             border-radius: 15px;
             border: 1px solid #ff4b4b;
-            margin-top: 60px;
+            margin-top: 20px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -177,11 +177,12 @@ st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 # =======================================================
 # YÖNETİCİ PANELİ (GİRİŞ VEYA SİLME ALANI)
 # =======================================================
-st.markdown('<div class="admin-section">', unsafe_allow_html=True)
-st.subheader("🔐 Yönetici Girişi")
+# Şifre kutusu ilk başta tamamen şeffaf ve sade bir şekilde durur
 admin_password = st.text_input("Yönetici şifresini giriniz:", type="password", key="admin_pass_input")
 
 if admin_password == "145348":
+    # Siyah şerit tasarım (admin-section) SADECE doğru şifre girildiğinde devreye girer
+    st.markdown('<div class="admin-section">', unsafe_allow_html=True)
     st.success("Giriş Başarılı! Yönetim Paneli Aktif.")
     st.write("---")
     st.header("👑 Medya Yönetim ve Silme Ekranı")
@@ -216,7 +217,7 @@ if admin_password == "145348":
                     st.error(f"Silindi: {media_file}")
                     st.rerun()
             st.write("------------------------------------")
+    st.markdown('</div>', unsafe_allow_html=True)
             
 elif admin_password:
     st.error("Hatalı Şifre girdiniz!")
-st.markdown('</div>', unsafe_allow_html=True)
