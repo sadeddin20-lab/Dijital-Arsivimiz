@@ -22,7 +22,7 @@ def get_drive_service():
         creds = Credentials(token=None, refresh_token=oauth_info["refresh_token"], client_id=oauth_info["client_id"], client_secret=oauth_info["client_secret"], token_uri="https://oauth2.googleapis.com/token")
         if not creds.valid: creds.refresh(Request())
         return build('drive', 'v3', credentials=creds)
-    except Exception as e: return None
+    except Exception: return None
 
 def upload_to_drive(file_path, file_name):
     service = get_drive_service()
@@ -35,7 +35,7 @@ def upload_to_drive(file_path, file_name):
         except Exception: return None
     return None
 
-# --- MOBİL NİZAM TASARIMI ---
+# --- ARKA PLAN VE STİL ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
@@ -47,40 +47,24 @@ if os.path.exists(BACKGROUND_IMAGE):
         <style>
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: 140% 100% !important;
-            background-position: top center !important;
+            background-size: cover !important;
+            background-position: center !important;
             background-repeat: no-repeat !important;
-            background-attachment: scroll !important;
-            background-color: #121212 !important;
             color: #FFFFFF;
         }}
-        h1 {{ font-size: 22px !important; margin-top: 0px !important; margin-bottom: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        h3, p {{ font-size: 13px !important; margin-bottom: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        .stFileUploader section {{ background-color: transparent !important; border: none !important; padding: 0px !important; margin: 0px auto !important; width: 100% !important; }}
-        .stFileUploader label {{ display: none !important; }}
-        .stFileUploader button {{
-            background-color: #FFFFFF !important; border: 2px solid #000000 !important;
-            padding: 10px 20px !important; width: 100% !important; max-width: 380px !important; 
-            border-radius: 12px !important; box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
-            margin-top: 15px !important; margin-bottom: 2px !important;
-        }}
-        .stFileUploader button p, .stFileUploader button span {{ color: #000000 !important; font-weight: 900 !important; font-size: 18px !important; }}
-        .alt-talimat-yazisi {{ color: #FFFFFF !important; font-weight: bold !important; font-size: 12px !important; text-align: center; margin-top: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        /* 🚨 YÖNETİCİ PANELİNİ EN YUKARI ÇEKEN NİZAM 🚨 */
-        .admin-section {{
-            background-color: rgba(0, 0, 0, 0.85); padding: 15px; border-radius: 12px;
-            border: 1px solid #ff4b4b; margin-top: 2px !important; 
-        }}
+        h1, h3, p {{ text-align: center; color: #FFFFFF; text-shadow: 2px 2px 5px #000; }}
+        .stFileUploader section {{ background-color: transparent !important; }}
+        .admin-section {{ background-color: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 12px; margin-top: 20px; }}
         </style>
     """, unsafe_allow_html=True)
 
+# --- ANA SAYFA ---
 st.title("📸 Hoş geldiniz!")
-st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz. 😄**")
+st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz.**")
 st.markdown("### **Fotoğrafları buraya yükleyin. Teşekkürler ❤️**")
 
 if "uploader_key" not in st.session_state: st.session_state["uploader_key"] = "uploader_first"
 uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True, key=st.session_state["uploader_key"])
-st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı seçin / Selecciona fotos</p>', unsafe_allow_html=True)
 
 LOCAL_DIR = "temp_local"
 if not os.path.exists(LOCAL_DIR): os.makedirs(LOCAL_DIR)
@@ -98,6 +82,7 @@ if uploaded_files:
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
 
+# --- YÖNETİCİ PANELİ ---
 admin_password = st.text_input("Yönetici şifresi:", type="password", key="admin_pass_input")
 if admin_password == "145348":
     st.markdown('<div class="admin-section">', unsafe_allow_html=True)
