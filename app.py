@@ -53,7 +53,7 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-# --- ENİ UZATILMIŞ, BOYU KISALTILMIŞ MOBİL ARKA PLAN ---
+# --- TELEFONA ÖZEL, UZATILMIŞ VE YAZILARI KÜÇÜLTÜLMÜŞ TASARIM ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -65,27 +65,39 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        /* 🚨 REİSİM, RESMİN ENİNİ GENİŞLETİP BOYUNU KISALTTIĞIMIZ VE SCROLL'U BİTİREN KOD 🚨 */
+        /* 🚨 REİSİM, RESMİN BOYUNU UZATTIĞIMIZ VE SİYAH EKRANI SİLEN AYAR 🚨 */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: 140% 75% !important; /* 🚨 Eni geniş, boyu kısa tutarak ekranı yukarı topladık */
-            background-position: top center !important; /* Resmi üstten başlatır */
+            background-size: 140% 92% !important; /* 🚨 Boyunu %92'ye uzattık, siyah boşluk kalmadı */
+            background-position: top center !important;
             background-repeat: no-repeat !important;
             background-attachment: scroll !important;
-            background-color: #1e1e1e !important; /* Resmin bittiği alt kısımlar asil bir koyu gri olur, buton netleşir */
+            background-color: #121212 !important;
             color: #FFFFFF;
         }}
         
-        h1, h3, h2, p {{
+        /* 🚨 YAZI BOYUTLARINI KÜÇÜLTEREK YUKARI TOPLADIĞIMIZ YER 🚨 */
+        h1 {{
+            font-size: 24px !important; /* Büyük ana başlıkları kibarlaştırdık */
             text-align: center;
             color: #FFFFFF;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin-bottom: 3px !important;
-            padding-bottom: 3px !important;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important; /* Yazıların okunması için güçlü zırh gölgesi */
+            margin-top: 5px !important;
+            margin-bottom: 2px !important;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important;
         }}
         
-        /* DOSYA YÜKLEYİCİ ALANI VE SİYAH BOŞLUKLARIN YOK EDİLMESİ */
+        h3, p {{
+            font-size: 14px !important; /* Alt açıklamaları ve emojileri küçülttük */
+            text-align: center;
+            color: #FFFFFF;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin-bottom: 2px !important;
+            padding-bottom: 2px !important;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important;
+        }}
+        
+        /* DOSYA YÜKLEYİCİ ALANI */
         .stFileUploader section {{
             background-color: transparent !important;
             border: none !important;
@@ -103,20 +115,20 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* EKRANI YUKARI TAŞIYAN GENİŞ ŞIK BUTON */
+        /* KUSURSUZ GENİŞ BUTON */
         .stFileUploader button {{
             background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
-            padding: 12px 20px !important;
+            padding: 11px 20px !important; /* Buton etini hafif narinleştirdik */
             width: 100% !important;
             min-width: 280px !important; 
-            max-width: 450px !important; 
+            max-width: 420px !important; 
             border-radius: 12px !important;
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.6) !important;
             transition: all 0.3s ease;
             order: 1 !important;
-            margin-top: 25px !important; /* Yukarısı çok aşağı basmasın diye boşluğu daralttık reisim */
-            margin-bottom: 20px !important;
+            margin-top: 25px !important; /* Boşlukları daraltıp ekranı yukarı çektik */
+            margin-bottom: 15px !important;
             display: inline-flex !important;
             justify-content: center !important;
             align-items: center !important;
@@ -125,7 +137,7 @@ if os.path.exists(BACKGROUND_IMAGE):
         .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
             color: #000000 !important;
             font-weight: 900 !important;
-            font-size: 22px !important;
+            font-size: 20px !important;
             text-align: center !important;
             display: inline-block !important;
             width: auto !important;
@@ -154,11 +166,11 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* BUTONUN ALTINDAKİ TALİMAT YAZISI */
+        /* BUTONUN ALTINDAKİ KÜÇÜLTÜLMÜŞ TALİMAT YAZISI */
         .alt-talimat-yazisi {{
             color: #FFFFFF !important;
             font-weight: bold !important;
-            font-size: 16px !important;
+            font-size: 13px !important; /* Yazı boyutunu butonla uyumlu çektik */
             text-align: center;
             margin-top: 2px !important;
             display: block;
@@ -170,7 +182,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding: 20px;
             border-radius: 15px;
             border: 1px solid #ff4b4b;
-            margin-top: 40px;
+            margin-top: 30px;
         }}
         </style>
     """, unsafe_allow_html=True)
