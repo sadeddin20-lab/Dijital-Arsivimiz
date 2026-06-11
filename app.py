@@ -43,14 +43,13 @@ if os.path.exists(BACKGROUND_IMAGE):
         <style>
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            /* 🚨 RESMİ TAM OTURTAN VE KESMEYEN NİZAM 🚨 */
             background-size: cover !important; 
-            background-position: center top !important;
+            background-position: center center !important;
             background-repeat: no-repeat !important;
             background-attachment: fixed !important;
             color: #FFFFFF;
         }}
-        h1, h3, h2, p {{ text-align: center; color: #FFFFFF; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important; }}
+        h1, h3, h2, p {{ text-align: center; color: #FFFFFF; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin-bottom: 5px !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important; }}
         .stFileUploader section {{ background-color: transparent !important; border: none !important; margin: 0px auto !important; width: 100% !important; }}
         .stFileUploader label {{ display: none !important; }}
         .stFileUploader button {{
@@ -66,21 +65,28 @@ if os.path.exists(BACKGROUND_IMAGE):
     """, unsafe_allow_html=True)
 
 # --- ANA SAYFA ---
-# 🚨 BÜYÜTÜLMÜŞ İSİM NİZAMI 🚨
+# 🚨 İSİMLERİ EN TEPEYE, BOK SARISI RENGİNDE EKLEDİM 🚨
 st.markdown("""
-    <div style="text-align: center; font-size: 50px; font-weight: bold; color: #C5A034; margin-top: 10px; text-shadow: 3px 3px 10px #000;">
+    <div style="text-align: center; font-size: 36px; font-weight: bold; color: #C5A034; margin-top: 20px; text-shadow: 2px 2px 8px #000;">
         𝓜𝓪𝓻𝓲𝓪 ∞ 𝓒𝓪𝓷𝓫𝓮𝓻𝓴
     </div>
 """, unsafe_allow_html=True)
 
 st.title("📸 Hoş geldiniz!")
-st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz. 😄**")
+st.markdown("""
+### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
+### **Yakaladığınız en güzel, en komik ve en özel anları buraya yükleyin. Teşekkürler ❤️**
+""")
+
 st.title("📸 Benvinguts!")
-st.markdown("### **Aquesta nit, sou els fotògrafs. 😄**")
+st.markdown("""
+### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
+### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**
+""")
 
 if "uploader_key" not in st.session_state: st.session_state["uploader_key"] = "uploader_first"
 uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True, key=st.session_state["uploader_key"])
-st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı yükleyin / Pugeu les vostres fotos</p>', unsafe_allow_html=True)
+st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı ve Videolarınızı seçin / Selecciona o arrossega fotos i vídeos (Maks: 4GB)</p>', unsafe_allow_html=True)
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
@@ -97,10 +103,10 @@ if uploaded_files:
 st.markdown("<br><hr>", unsafe_allow_html=True)
 
 # --- YÖNETİCİ PANELİ ---
-admin_password = st.text_input("Yönetici şifresi:", type="password", key="admin_pass_input")
+admin_password = st.text_input("Yönetici şifresini giriniz:", type="password", key="admin_pass_input")
 if admin_password == "145348":
     st.markdown('<div class="admin-section">', unsafe_allow_html=True)
-    st.header("👑 Medya Yönetim")
+    st.header("👑 Medya Yönetim ve Silme Ekranı")
     files = os.listdir("temp_local") if os.path.exists("temp_local") else []
     for media_file in sorted([f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))], reverse=True):
         local_file_path = os.path.join("temp_local", media_file)
