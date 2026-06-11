@@ -53,7 +53,7 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-# --- TELEFONA TAM OTURAN VE BASIKLIĞI DÜZELTİLMİŞ ARKA PLAN ---
+# --- TELEFONA ÖZEL, ENİ GENİŞLETİLMİŞ ARKA PLAN TASARIMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -65,11 +65,11 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        /* 🚨 REİSİM, RESMİN BASIKLIĞINI YOK EDEN VE TELEFONA TAM SIĞDIRAN KUSURSUZ CSS 🚨 */
+        /* 🚨 REİSİM, RESMİN ENİNİ GENİŞLETİP SAĞA SOLA AÇTIĞIMIZ CSS AYARI 🚨 */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: cover !important; /* 🚨 Resmi esnetmez, doğal oranını korur (Basıklık bitti!) */
-            background-position: center 20% !important; /* Kişileri tam merkezde tutar */
+            background-size: 125% 100% !important; /* 🚨 Enini %125 yaparak genişlettik, boyu tam oturdu */
+            background-position: center center !important;
             background-repeat: no-repeat !important;
             background-attachment: scroll !important;
             color: #FFFFFF;
@@ -196,7 +196,7 @@ st.markdown("""
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-### **Pugeu aquí els moments mès bonics, divertits i especials que captureu. Gràcies ❤️**
+### **Pugeu aquí els moments mès bonics, divertits i especials ki captureu. Gràcies ❤️**
 """)
 
 if "uploader_key" not in st.session_state:
