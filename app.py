@@ -53,22 +53,6 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-def delete_from_drive(file_name):
-    service = get_drive_service()
-    if service:
-        try:
-            query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
-            results = service.files().list(q=query, fields="files(id, name)").execute()
-            items = results.get('files', [])
-            
-            if items:
-                for item in items:
-                    service.files().delete(fileId=item['id']).execute()
-                return True
-        except Exception as e:
-            st.error(f"Google Drive'dan silme hatası: {e}")
-    return False
-
 # --- ÖZEL ARKA PLAN VE ENLEMESİNE GENİŞ BUTON TASARIMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -115,17 +99,14 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* 🚨 REİSİM, ARKA BEYAZLIĞINI ENLEMESİNE GENİŞLETTİĞİMİZ KUSURSUZ BUTON YAPISI 🚨 */
+        /* KUSURSUZ GENİŞ BUTON YAPISI */
         .stFileUploader button {{
             background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
             padding: 14px 20px !important;
-            
-            /* Enini tam genişlik yapıp buton sınırlarını kilitledik */
             width: 100% !important;
             min-width: 320px !important; 
             max-width: 450px !important; 
-            
             border-radius: 12px !important;
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4) !important;
             transition: all 0.3s ease;
@@ -138,14 +119,14 @@ if os.path.exists(BACKGROUND_IMAGE):
         }}
         
         /* Butonun içindeki "Upload" yazısının taşmasını önleyen ve ortalayan nizam */
-        .stFileUploader button p, .stFileUploader button div, .stFileUploader button span, .stFileUploader button data-testid {{
+        .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
             color: #000000 !important;
             font-weight: 900 !important;
             font-size: 22px !important;
             text-align: center !important;
             display: inline-block !important;
             width: auto !important;
-            white-space: nowrap !important; /* Yazının kırılmasını ve taşmasını engeller */
+            white-space: nowrap !important;
         }}
         
         /* Butonun üzerine gelindiğinde parlaması */
@@ -167,7 +148,6 @@ if os.path.exists(BACKGROUND_IMAGE):
             width: 100% !important;
         }}
         
-        /* Sürükle bırak kalıntılarını gizliyoruz */
         .stFileUploader svg, .stFileUploader data-testid="stFileUploadDropzone" > div:dir(ltr) {{
             display: none !important;
         }}
@@ -218,11 +198,15 @@ st.markdown("""
 ### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**
 """)
 
+# Yükleyici hafızasını kontrol altında tutmak için Session State anahtarı
+if "uploader_key" not in st.session_state:
+    st.session_state["uploader_key"] = "uploader_first"
+
 uploaded_files = st.file_uploader(
     "",
     type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
     accept_multiple_files=True,
-    key=st.session_state["uploader_key"] if "uploader_key" in st.session_state else "uploader_first"
+    key=st.session_state["uploader_key"]
 )
 
 # Yazı uzun butonun altında dengeli mesafede duruyor
@@ -289,10 +273,10 @@ if admin_password == "145348":
             with col2:
                 st.write("<br><br>", unsafe_allow_html=True)
                 if st.button(f"❌ Sil", key=f"del_{media_file}"):
-                    delete_from_drive(media_file)
+                    # 🚨 DRIVE'DAN SİLME FONKSİYONUNU BURADAN SÖKTÜK REİSİM, ARTIK SADECE YERELİ SİLİYOR 🚨
                     if os.path.exists(local_file_path):
                         os.remove(local_file_path)
-                    st.error(f"Silindi: {media_file}")
+                    st.error(f"Ekrandan kaldırıldı: {media_file}")
                     st.rerun()
             st.write("------------------------------------")
     st.markdown('</div>', unsafe_allow_html=True)
