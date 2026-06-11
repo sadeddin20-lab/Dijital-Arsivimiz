@@ -22,7 +22,11 @@ DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        creds_dict = json.loads(st.secrets["textkey"])
+        # Hata veren 'textkey' yerine yeni tanımladığımız 'drive_creds_base64' anahtarını çağırıyoruz
+        base64_creds = st.secrets["drive_creds_base64"]
+        creds_json = base64.b64decode(base64_creds).decode('utf-8')
+        creds_dict = json.loads(creds_json)
+        
         creds = service_account.Credentials.from_service_account_info(creds_dict)
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
@@ -45,7 +49,6 @@ def delete_from_drive(file_name):
     service = get_drive_service()
     if service:
         try:
-            # Önce silinecek dosyanın ID'sini klasör içinde ismiyle aratıyoruz
             query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
             results = service.files().list(q=query, fields="files(id, name)").execute()
             items = results.get('files', [])
@@ -110,7 +113,6 @@ else:
 # ANA SAYFA: MISAFIR YÜKLEME ALANI (HERKESE AÇIK)
 # =======================================================
 
-# --- TÜRKÇE BÖLÜM ---
 st.title("📸 Hoş geldiniz!")
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
@@ -122,7 +124,6 @@ st.markdown("""
 
 st.markdown("<br><hr><br>", unsafe_allow_html=True)
 
-# --- KATALANCA BÖLÜM ---
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
@@ -134,14 +135,12 @@ st.markdown("""
 
 st.write("---")
 
-# --- DOSYA YÜKLEME ALANI (RESİM VE VİDEO - 4GB LİMİTLİ) ---
 uploaded_files = st.file_uploader(
     "Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB):",
     type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
     accept_multiple_files=True
 )
 
-# Yerel yedekleme/listeleme klasör kontrolü
 LOCAL_DIR = "temp_local"
 if not os.path.exists(LOCAL_DIR):
     os.makedirs(LOCAL_DIR)
@@ -153,11 +152,9 @@ if uploaded_files:
         file_name = f"{timestamp}_{uploaded_file.name}"
         local_path = os.path.join(LOCAL_DIR, file_name)
         
-        # Yönetici panelinde silme ve listeleme yapabilmek için yerel kopyasını oluşturuyoruz
         with open(local_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
         
-        # Google Drive'a gönderim
         drive_id = upload_to_drive(local_path, file_name)
         
         if drive_id:
@@ -169,7 +166,7 @@ if uploaded_files:
 st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 
 # =======================================================
-# YÖNETİCİ PANELİ (GİRİŞ VE CANLI SİLME EKRANI)
+# YÖNETİCİ PANELİ (GİRİŞ VEYA SİLME ALANI)
 # =======================================================
 st.markdown('<div class="admin-section">', unsafe_allow_html=True)
 st.subheader("🔐 Yönetici Girişi")
@@ -180,7 +177,6 @@ if admin_password == "145348":
     st.write("---")
     st.header("👑 Medya Yönetim ve Silme Ekranı")
     
-    # Yerel hafızadaki dosyaları listele (En yeni en üstte)
     files = os.listdir(LOCAL_DIR)
     media_files = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))]
     
@@ -205,12 +201,9 @@ if admin_password == "145348":
             with col2:
                 st.write("<br><br>", unsafe_allow_html=True)
                 if st.button(f"❌ Sil", key=f"del_{media_file}"):
-                    # 1. Google Drive'dan sil
-                    drive_deleted = delete_from_drive(media_file)
-                    # 2. Yerel sunucudan sil
+                    delete_from_drive(media_file)
                     if os.path.exists(local_file_path):
                         os.remove(local_file_path)
-                    
                     st.error(f"Silindi: {media_file}")
                     st.rerun()
             st.write("------------------------------------")
