@@ -1,11 +1,15 @@
 import streamlit as st
 import os
 import base64
+import json
 from datetime import datetime
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
-# --- 1. DOSYA YÜKLEME BOYUTU SINIRINI KALDIRMA ---
-# Streamlit normalde dosya başına 200MB sınır koyar. Bunu kodun en başında konfigüre ediyoruz reisim.
-# Ancak tam verim almak için Streamlit Cloud'a yüklerken .streamlit/config.toml ayarı da gerekebilir (aşağıda açıkladım).
+# --- 4 GB YÜKLEME LİMİTİ AYARI ---
+# Sunucu yükleme limitini kod seviyesinde 4096 MB (4 GB) olarak set ediyoruz reisim.
+st.config.set_option("server.maxUploadSize", 4096)
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(
@@ -14,10 +18,32 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- FOTOĞRAF VE VİDEO KLASÖRÜ ---
-UPLOAD_DIR = "dugun_fotograflari_havuzu"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
+# --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
+# Reisim, onayladığınız Google Drive klasör ID'niz buraya jilet gibi işlendi:
+DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
+
+def get_drive_service():
+    try:
+        # Streamlit Cloud panelindeki 'Secrets' kısmına kaydettiğimiz şifreyi okur reisim
+        creds_dict = json.loads(st.secrets["textkey"])
+        creds = service_account.Credentials.from_service_account_info(creds_dict)
+        return build('drive', 'v3', credentials=creds)
+    except Exception as e:
+        st.error(f"Google Drive bağlantı hatası reisim: {e}")
+        return None
+
+def upload_to_drive(file_path, file_name):
+    service = get_drive_service()
+    if service:
+        file_metadata = {
+            'name': file_name,
+            'parents': [DRIVE_FOLDER_ID]
+        }
+        # Büyük videolar yarıda kesilmesin diye resumable=True olarak ayarladım reisim
+        media = MediaFileUpload(file_path, resumable=True)
+        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        return file.get('id')
+    return None
 
 # --- ÖZEL ARKA PLAN ENTEGRASYONU ---
 def get_base64_image(image_path):
@@ -50,13 +76,12 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }}
-        /* Admin paneli kutusu */
-        .admin-box {{
-            background-color: rgba(0, 0, 0, 0.85);
+        .admin-section {{
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             border: 1px solid #ff4b4b;
-            margin-top: 50px;
+            margin-top: 60px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -68,80 +93,76 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-# --- YAN MENÜ (YÖNETİCİ GİRİŞİ) ---
-st.sidebar.title("🔐 Yönetim Paneli")
-admin_password = st.sidebar.text_input("Yönetici Şifresi:", type="password")
+# =======================================================
+# ANA SAYFA: MISAFIR YÜKLEME ALANI (HERKESE AÇIK)
+# =======================================================
 
-# Yönetici Giriş Kontrolü
-if admin_password == "145348":
-    st.sidebar.success("Giriş Başarılı, Reisim!")
-    st.write("---")
-    st.header("👑 Yönetici İzleme Ekranı (Canlı Akış)")
-    
-    files = os.listdir(UPLOAD_DIR)
-    media_files = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))]
-    
-    if not media_files:
-        st.info("Henüz hiç fotoğraf veya video yüklenmedi reisim.")
-    else:
-        st.write(f"Toplam Yüklenen Dosya: {len(media_files)}")
-        for media_file in sorted(media_files, reverse=True): # En yeni yüklenen en üstte görünür
-            file_path = os.path.join(UPLOAD_DIR, media_file)
-            st.write(f"📄 {media_file}")
-            
-            # Fotoğraf veya video önizleme
-            if media_file.lower().endswith(('.mp4', '.mov')):
-                st.video(file_path)
-            else:
-                st.image(file_path, width=300)
-            st.write("---")
-            
-else:
-    if admin_password:
-        st.sidebar.error("Hatalı Şifre!")
+# --- TÜRKÇE BÖLÜM ---
+st.title("📸 Hoş geldiniz!")
+st.markdown("""
+### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
 
-    # --- ANA SAYFA: EMRETTİĞİNİZ BİREBİR METİNLER ---
-    
-    # --- TÜRKÇE BÖLÜM ---
-    st.title("📸 Hoş geldiniz!")
-    st.markdown("""
-    ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
+### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
 
-    ### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
+### **Teşekkürler ❤️**
+""")
 
-    ### **Teşekkürler ❤️**
-    """)
+st.markdown("<br><hr><br>", unsafe_allow_html=True)
 
-    st.markdown("<br><hr><br>", unsafe_allow_html=True)
+# --- KATALANCA BÖLÜM ---
+st.title("📸 Benvinguts!")
+st.markdown("""
+### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
 
-    # --- KATALANCA BÖLÜM ---
-    st.title("📸 Benvinguts!")
-    st.markdown("""
-    ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
+### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
 
-    ### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
+### **Gràcies ❤️**
+""")
 
-    ### **Gràcies ❤️**
-    """)
+st.write("---")
 
-    st.write("---")
+# --- DOSYA YÜKLEME ALANI (RESİM VE VİDEO - 4GB LİMİTLİ) ---
+uploaded_files = st.file_uploader(
+    "Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB):",
+    type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
+    accept_multiple_files=True
+)
 
-    # --- DOSYA YÜKLEME ALANI (RESİM VE VİDEO) ---
-    uploaded_files = st.file_uploader(
-        "Fotoğraflarınızı ve Videolarınızı seçin / Selecciona o arrossega les teves fotos i vídeos aquí:",
-        type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
-        accept_multiple_files=True
-    )
-
-    if uploaded_files:
-        success_count = 0
-        for uploaded_file in uploaded_files:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            file_name = f"{timestamp}_{uploaded_file.name}"
-            file_path = os.path.join(UPLOAD_DIR, file_name)
-            
-            with open(file_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            success_count += 1
+if uploaded_files:
+    success_count = 0
+    if not os.path.exists("temp"):
+        os.makedirs("temp")
         
-        st.success(f"🎉 {success_count} adet anı başarıyla yüklenmiş ve havuza eklenmiştir! / S'han pujat {success_count} records correctament!")
+    for uploaded_file in uploaded_files:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"{timestamp}_{uploaded_file.name}"
+        temp_path = os.path.join("temp", file_name)
+        
+        # Dosyayı geçici olarak sunucu hafızasına alıyoruz reisim
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        
+        # Google Drive klasörünüze gönderiliyor...
+        drive_id = upload_to_drive(temp_path, file_name)
+        
+        if drive_id:
+            success_count += 1
+            os.remove(temp_path) # Sunucuda şişme yapmasın diye işi biteni hemen siliyoruz reisim
+    
+    if success_count > 0:
+        st.success(f"🎉 {success_count} adet anı başarıyla yüklendi! / S'han pujat {success_count} records correctament!")
+
+st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
+
+# =======================================================
+# YÖNETİCİ PANELİ (GİRİŞ KONTROLÜ)
+# =======================================================
+st.markdown('<div class="admin-section">', unsafe_allow_html=True)
+st.subheader("🔐 Yönetici Girişi")
+admin_password = st.text_input("Yönetici şifresini giriniz:", type="password", key="admin_pass_input")
+
+if admin_password == "145348":
+    st.success("Giriş Başarılı reisim! Tüm yüklemeler Google Drive klasörünüzde güvenle birikiyor. Klasörünüzü açarak anlık takip edebilirsiniz.")
+elif admin_password:
+    st.error("Hatalı Şifre girdiniz reisim!")
+st.markdown('</div>', unsafe_allow_html=True)
