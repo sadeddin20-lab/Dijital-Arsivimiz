@@ -53,7 +53,7 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-# --- TELEFONA ÖZEL, ENİ GENİŞLETİLMİŞ ARKA PLAN TASARIMI ---
+# --- ENİ UZATILMIŞ, BOYU KISALTILMIŞ MOBİL ARKA PLAN ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -65,13 +65,14 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        /* 🚨 REİSİM, RESMİN ENİNİ GENİŞLETİP SAĞA SOLA AÇTIĞIMIZ CSS AYARI 🚨 */
+        /* 🚨 REİSİM, RESMİN ENİNİ GENİŞLETİP BOYUNU KISALTTIĞIMIZ VE SCROLL'U BİTİREN KOD 🚨 */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: 125% 100% !important; /* 🚨 Enini %125 yaparak genişlettik, boyu tam oturdu */
-            background-position: center center !important;
+            background-size: 140% 75% !important; /* 🚨 Eni geniş, boyu kısa tutarak ekranı yukarı topladık */
+            background-position: top center !important; /* Resmi üstten başlatır */
             background-repeat: no-repeat !important;
             background-attachment: scroll !important;
+            background-color: #1e1e1e !important; /* Resmin bittiği alt kısımlar asil bir koyu gri olur, buton netleşir */
             color: #FFFFFF;
         }}
         
@@ -79,8 +80,8 @@ if os.path.exists(BACKGROUND_IMAGE):
             text-align: center;
             color: #FFFFFF;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin-bottom: 5px !important;
-            padding-bottom: 5px !important;
+            margin-bottom: 3px !important;
+            padding-bottom: 3px !important;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important; /* Yazıların okunması için güçlü zırh gölgesi */
         }}
         
@@ -102,11 +103,11 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* ENLEMESİNE UZUN VE ŞIK BUTON */
+        /* EKRANI YUKARI TAŞIYAN GENİŞ ŞIK BUTON */
         .stFileUploader button {{
             background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
-            padding: 14px 20px !important;
+            padding: 12px 20px !important;
             width: 100% !important;
             min-width: 280px !important; 
             max-width: 450px !important; 
@@ -114,8 +115,8 @@ if os.path.exists(BACKGROUND_IMAGE):
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.6) !important;
             transition: all 0.3s ease;
             order: 1 !important;
-            margin-top: 45px !important;
-            margin-bottom: 30px !important;
+            margin-top: 25px !important; /* Yukarısı çok aşağı basmasın diye boşluğu daralttık reisim */
+            margin-bottom: 20px !important;
             display: inline-flex !important;
             justify-content: center !important;
             align-items: center !important;
@@ -159,7 +160,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             font-weight: bold !important;
             font-size: 16px !important;
             text-align: center;
-            margin-top: 5px !important;
+            margin-top: 2px !important;
             display: block;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.9) !important;
         }}
@@ -189,14 +190,14 @@ else:
 st.title("📸 Hoş geldiniz!")
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
-### **Yakaladığınız en güzel, en komik ve en özel anları buraya yükleyin. Teşekkürler ❤️**
+### **Yakaladığınız en güzel, en komik bizzat buraya yükleyin. Teşekkürler ❤️**
 """)
 
 # Katalanca Karşılama
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-### **Pugeu aquí els moments mès bonics, divertits i especials ki captureu. Gràcies ❤️**
+### **Pugeu aquí els moments mès bonics, divertits i especials que captureu. Gràcies ❤️**
 """)
 
 if "uploader_key" not in st.session_state:
