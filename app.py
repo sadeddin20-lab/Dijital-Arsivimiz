@@ -3,6 +3,10 @@ import os
 import base64
 from datetime import datetime
 
+# --- 1. DOSYA YÜKLEME BOYUTU SINIRINI KALDIRMA ---
+# Streamlit normalde dosya başına 200MB sınır koyar. Bunu kodun en başında konfigüre ediyoruz reisim.
+# Ancak tam verim almak için Streamlit Cloud'a yüklerken .streamlit/config.toml ayarı da gerekebilir (aşağıda açıkladım).
+
 # --- SAYFA AYARLARI ---
 st.set_page_config(
     page_title="Düğün Fotoğraf Havuzu / Pool de Fotos Boda",
@@ -10,7 +14,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- FOTOĞRAF KLASÖRÜ ---
+# --- FOTOĞRAF VE VİDEO KLASÖRÜ ---
 UPLOAD_DIR = "dugun_fotograflari_havuzu"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
@@ -21,12 +25,10 @@ def get_base64_image(image_path):
         data = base64.b64encode(image_file.read()).decode()
     return data
 
-# Arka plan dosya adı (Uzantısı .jpg, .png veya .jpeg ise burayı kontrol edin reisim)
 BACKGROUND_IMAGE = "arka_plan.jpg" 
 
 if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
-    
     st.markdown(f"""
         <style>
         .stApp {{
@@ -37,16 +39,24 @@ if os.path.exists(BACKGROUND_IMAGE):
             background-attachment: fixed;
             color: #FFFFFF;
         }}
-        h1, h3 {{
+        h1, h3, h2, p {{
             text-align: center;
             color: #FFFFFF;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }}
         .stFileUploader section {{
-            background-color: rgba(0, 0, 0, 0.6) !important; /* Yazıların okunması için hafif koyu transparan panel */
+            background-color: rgba(0, 0, 0, 0.6) !important;
             border-radius: 15px;
             padding: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+        }}
+        /* Admin paneli kutusu */
+        .admin-box {{
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ff4b4b;
+            margin-top: 50px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -57,52 +67,81 @@ else:
         h1, h3 { text-align: center; }
         </style>
     """, unsafe_allow_html=True)
-    st.warning(f"⚠️ Dikkat reisim: '{BACKGROUND_IMAGE}' dosyası bulunamadı. Lütfen dosyanın 'app.py' ile aynı klasörde olduğundan emin olun.")
 
-# --- EMRETTİĞİNİZ BİREBİR METİNLER (EMOJİLERİYLE BİRLİKTE) ---
+# --- YAN MENÜ (YÖNETİCİ GİRİŞİ) ---
+st.sidebar.title("🔐 Yönetim Paneli")
+admin_password = st.sidebar.text_input("Yönetici Şifresi:", type="password")
 
-# --- TÜRKÇE BÖLÜM ---
-st.title("📸 Hoş geldiniz!")
-
-st.markdown("""
-### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
-
-### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
-
-### **Teşekkürler ❤️**
-""")
-
-st.markdown("<br><hr><br>", unsafe_allow_html=True) # İki dil arasına şık bir boşluk çizgisi reisim
-
-# --- KATALANCA BÖLÜM ---
-st.title("📸 Benvinguts!")
-
-st.markdown("""
-### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-
-### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
-
-### **Gràcies ❤️**
-""")
-
-st.write("---")
-
-# --- DOSYA YÜKLEME ALANI ---
-uploaded_files = st.file_uploader(
-    "Fotoğraflarınızı seçin veya sürükleyin / Selecciona o arrossega les teves fotos aquí:",
-    type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
-    accept_multiple_files=True
-)
-
-if uploaded_files:
-    success_count = 0
-    for uploaded_file in uploaded_files:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_name = f"{timestamp}_{uploaded_file.name}"
-        file_path = os.path.join(UPLOAD_DIR, file_name)
-        
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        success_count += 1
+# Yönetici Giriş Kontrolü
+if admin_password == "145348":
+    st.sidebar.success("Giriş Başarılı, Reisim!")
+    st.write("---")
+    st.header("👑 Yönetici İzleme Ekranı (Canlı Akış)")
     
-    st.success(f"🎉 {success_count} adet anı başarıyla yüklendi! / S'han pujat {success_count} records correctament!")
+    files = os.listdir(UPLOAD_DIR)
+    media_files = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))]
+    
+    if not media_files:
+        st.info("Henüz hiç fotoğraf veya video yüklenmedi reisim.")
+    else:
+        st.write(f"Toplam Yüklenen Dosya: {len(media_files)}")
+        for media_file in sorted(media_files, reverse=True): # En yeni yüklenen en üstte görünür
+            file_path = os.path.join(UPLOAD_DIR, media_file)
+            st.write(f"📄 {media_file}")
+            
+            # Fotoğraf veya video önizleme
+            if media_file.lower().endswith(('.mp4', '.mov')):
+                st.video(file_path)
+            else:
+                st.image(file_path, width=300)
+            st.write("---")
+            
+else:
+    if admin_password:
+        st.sidebar.error("Hatalı Şifre!")
+
+    # --- ANA SAYFA: EMRETTİĞİNİZ BİREBİR METİNLER ---
+    
+    # --- TÜRKÇE BÖLÜM ---
+    st.title("📸 Hoş geldiniz!")
+    st.markdown("""
+    ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
+
+    ### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
+
+    ### **Teşekkürler ❤️**
+    """)
+
+    st.markdown("<br><hr><br>", unsafe_allow_html=True)
+
+    # --- KATALANCA BÖLÜM ---
+    st.title("📸 Benvinguts!")
+    st.markdown("""
+    ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
+
+    ### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
+
+    ### **Gràcies ❤️**
+    """)
+
+    st.write("---")
+
+    # --- DOSYA YÜKLEME ALANI (RESİM VE VİDEO) ---
+    uploaded_files = st.file_uploader(
+        "Fotoğraflarınızı ve Videolarınızı seçin / Selecciona o arrossega les teves fotos i vídeos aquí:",
+        type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
+        accept_multiple_files=True
+    )
+
+    if uploaded_files:
+        success_count = 0
+        for uploaded_file in uploaded_files:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            file_name = f"{timestamp}_{uploaded_file.name}"
+            file_path = os.path.join(UPLOAD_DIR, file_name)
+            
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            success_count += 1
+        
+        st.success(f"🎉 {success_count} adet anı başarıyla yüklenmiş ve havuza eklenmiştir! / S'han pujat {success_count} records correctament!")
