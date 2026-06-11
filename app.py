@@ -69,7 +69,7 @@ def delete_from_drive(file_name):
             st.error(f"Google Drive'dan silme hatası: {e}")
     return False
 
-# --- ÖZEL ARKA PLAN VE YÜKLEYİCİ ÖZELLEŞTİRME ---
+# --- ÖZEL ARKA PLAN VE ASIL BUTON ÖZELLEŞTİRME ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -97,29 +97,44 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding-bottom: 5px !important;
         }}
         
-        /* DOSYA YÜKLEYİCİ ALANI VE HARF AYARLARI */
+        /* FOTOĞRAF SEÇME ALANININ DIŞ KUTUSU */
         .stFileUploader section {{
-            background-color: rgba(255, 255, 255, 0.85) !important; /* Arka planı açık renk yaparak yazıları patlattık */
+            background-color: rgba(0, 0, 0, 0.6) !important; /* Arkasını koyu şık bir transparan yaptık */
             border-radius: 15px;
             padding: 20px;
-            border: 2px dashed #000000;
+            border: 2px dashed rgba(255, 255, 255, 0.4);
         }}
         
-        /* Yükleyici içindeki ana talimat yazısı */
+        /* Üstteki beyaz bilgilendirme yazısı */
         .stFileUploader label p {{
-            color: #000000 !important;
-            font-weight: 900 !important; /* Ekstra Kalın (Koyu) */
-            font-size: 20px !important; /* Büyük harfler */
+            color: #FFFFFF !important;
+            font-weight: bold !important;
+            font-size: 16px !important;
         }}
         
-        /* Sürükle bırak / Browse dosyası yazıları */
-        .stFileUploader data-testid="stFileUploadDropzone" {{
-            color: #000000 !important;
+        /* 🚨 REİSİM, ARADIĞIMIZ O ASIL "UPLOAD / BROWSE FILES" BUTONU BURASI 🚨 */
+        .stFileUploader button {{
+            background-color: #FFFFFF !important; /* Butonun kendisini bembeyaz yaptık */
+            border: 2px solid #000000 !important;
+            padding: 12px 28px !important; /* Butonu irileştirdik */
+            border-radius: 10px !important;
+            transition: all 0.3s ease;
         }}
-        .stFileUploader small {{
-            color: #111111 !important;
-            font-weight: bold !important;
-            font-size: 14px !important;
+        
+        /* Butonun içindeki o upload / browse yazan harfler */
+        .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
+            color: #000000 !important; /* Harfleri simsiyah (koyu) yaptık */
+            font-weight: 900 !important; /* Harfleri ekstra kalın yaptık */
+            font-size: 20px !important; /* Harfleri büyük yaptık, kabak gibi belli olsun */
+        }}
+        
+        /* Fareyle butonun üzerine gelince hafif parlaması için */
+        .stFileUploader button:hover {{
+            background-color: #ff4b4b !important; /* Üzerine gelince düğün konseptine uygun kırmızı olsun */
+            border-color: #FFFFFF !important;
+        }}
+        .stFileUploader button:hover p {{
+            color: #FFFFFF !important; /* Üzerine gelince harfler beyaz olsun */
         }}
         
         .admin-section {{
