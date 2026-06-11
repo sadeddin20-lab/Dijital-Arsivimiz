@@ -21,9 +21,9 @@ DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        # Secrets içindeki [textkey] tablosunu doğrudan sözlük (dict) olarak alıyoruz
+        # Secrets panelindeki [textkey] tablosunu doğrudan sözlük (dict) olarak okuyoruz
         creds_dict = dict(st.secrets["textkey"])
-        # JSON içerisinde yer alan \n kaçış karakterlerini doğru okuması için temizlik yapıyoruz
+        # JSON yapısındaki ters bölü (\n) işaretlerini sistemin doğru okuması için nizamlıyoruz
         creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
         
         creds = service_account.Credentials.from_service_account_info(creds_dict)
