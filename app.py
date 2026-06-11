@@ -18,6 +18,7 @@ st.set_page_config(
 
 # --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
+ASIL_GMAIL_ADRESI = "sadeddin20@gmail.com"
 
 def get_drive_service():
     try:
@@ -43,7 +44,29 @@ def upload_to_drive(file_path, file_name):
             # Büyük dosyaların (özellikle videoların) parça parça güvenle yüklenmesi için ayarlar optimize edildi
             media = MediaFileUpload(file_path, chunksize=1024*1024, resumable=True)
             file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-            return file.get('id')
+            
+            file_id = file.get('id')
+            
+            # --- SERVICE ACCOUNT KOTA HATASINI ÇÖZEN MÜLKİYET DEVRİ ---
+            if file_id:
+                try:
+                    user_permission = {
+                        'type': 'user',
+                        'role': 'owner',
+                        'emailAddress': ASIL_GMAIL_ADRESI
+                    }
+                    # Dosya yüklendiği an mülkiyeti doğrudan sizin hesabınıza devrederek kotayı sizin alanınızdan düşürüyoruz
+                    service.permissions().create(
+                        fileId=file_id, 
+                        body=user_permission, 
+                        transferOwnership=True
+                    ).execute()
+                except Exception as e_perm:
+                    # Ana klasörün yapısına veya Drive ayarlarına bağlı istisnalar için sessizce devam etmesini sağlıyoruz
+                    pass
+            # --------------------------------------------------------
+            
+            return file_id
         except Exception as e:
             st.error(f"Google Drive'a dosya yazma hatası! Lütfen 'dugun-botu@...' e-posta adresine Google Drive klasörünüz için 'Düzenleyici' izni verdiğinizden emin olun. Detay: {e}")
             return None
