@@ -7,13 +7,9 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# --- 4 GB YÜKLEME LİMİTİ AYARI ---
+# --- AYARLAR ---
 st.config.set_option("server.maxUploadSize", 4096)
-
-# --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Düğün Fotoğraf Havuzu", page_icon="📸", layout="centered")
-
-# --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
@@ -35,7 +31,7 @@ def upload_to_drive(file_path, file_name):
         except Exception: return None
     return None
 
-# --- ARKA PLAN VE STİL ---
+# --- STİL VE BUTON NİZAMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
@@ -49,22 +45,41 @@ if os.path.exists(BACKGROUND_IMAGE):
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
             background-size: cover !important;
             background-position: center !important;
-            background-repeat: no-repeat !important;
             color: #FFFFFF;
         }}
         h1, h3, p {{ text-align: center; color: #FFFFFF; text-shadow: 2px 2px 5px #000; }}
-        .stFileUploader section {{ background-color: transparent !important; }}
+        
+        /* Butonun enini geniş ve belirgin hale getiren nizam */
+        .stFileUploader button {{
+            background-color: #FFFFFF !important;
+            border: 2px solid #000000 !important;
+            width: 100% !important;
+            max-width: 400px !important;
+            padding: 12px 20px !important;
+            border-radius: 12px !important;
+            font-weight: 900 !important;
+            color: #000000 !important;
+            font-size: 18px !important;
+        }}
+        .stFileUploader button p {{ color: #000000 !important; font-weight: 900 !important; }}
+        
         .admin-section {{ background-color: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 12px; margin-top: 20px; }}
         </style>
     """, unsafe_allow_html=True)
 
 # --- ANA SAYFA ---
 st.title("📸 Hoş geldiniz!")
-st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz.**")
+st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz. 😄**")
 st.markdown("### **Fotoğrafları buraya yükleyin. Teşekkürler ❤️**")
 
+st.markdown("<hr>", unsafe_allow_html=True)
+
+st.title("📸 Benvinguts!")
+st.markdown("### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**")
+st.markdown("### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**")
+
 if "uploader_key" not in st.session_state: st.session_state["uploader_key"] = "uploader_first"
-uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True, key=st.session_state["uploader_key"])
+uploaded_files = st.file_uploader("Fotoğraflarınızı seçin / Selecciona fotos", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True, key=st.session_state["uploader_key"])
 
 LOCAL_DIR = "temp_local"
 if not os.path.exists(LOCAL_DIR): os.makedirs(LOCAL_DIR)
@@ -76,7 +91,7 @@ if uploaded_files:
         local_path = os.path.join(LOCAL_DIR, file_name)
         with open(local_path, "wb") as f: f.write(uploaded_file.getbuffer())
         upload_to_drive(local_path, file_name)
-    st.success("Başarıyla yüklendi!")
+    st.success("Başarıyla yüklendi! / S'han pujat correctament!")
     st.session_state["uploader_key"] = f"uploader_{datetime.now().strftime('%M%S')}"
     st.rerun()
 
