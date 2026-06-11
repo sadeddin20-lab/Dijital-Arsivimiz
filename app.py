@@ -18,7 +18,6 @@ st.set_page_config(
 
 # --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
-ASIL_GMAIL_ADRESI = "sadeddin20@gmail.com"
 
 def get_drive_service():
     try:
@@ -41,34 +40,20 @@ def upload_to_drive(file_path, file_name):
                 'name': file_name,
                 'parents': [DRIVE_FOLDER_ID]
             }
-            # Büyük dosyaların (özellikle videoların) parça parça güvenle yüklenmesi için ayarlar optimize edildi
-            media = MediaFileUpload(file_path, chunksize=1024*1024, resumable=True)
-            file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            # Kota aşımını engellemek için parça boyutunu optimize ediyoruz
+            media = MediaFileUpload(file_path, chunksize=256*1024, resumable=True)
             
-            file_id = file.get('id')
+            # supportsAllDrives=True ekleyerek botun kota alanını genişletiyoruz ve yetkiyi zorluyoruz
+            file = service.files().create(
+                body=file_metadata, 
+                media_body=media, 
+                fields='id',
+                supportsAllDrives=True
+            ).execute()
             
-            # --- SERVICE ACCOUNT KOTA HATASINI ÇÖZEN MÜLKİYET DEVRİ ---
-            if file_id:
-                try:
-                    user_permission = {
-                        'type': 'user',
-                        'role': 'owner',
-                        'emailAddress': ASIL_GMAIL_ADRESI
-                    }
-                    # Dosya yüklendiği an mülkiyeti doğrudan sizin hesabınıza devrederek kotayı sizin alanınızdan düşürüyoruz
-                    service.permissions().create(
-                        fileId=file_id, 
-                        body=user_permission, 
-                        transferOwnership=True
-                    ).execute()
-                except Exception as e_perm:
-                    # Ana klasörün yapısına veya Drive ayarlarına bağlı istisnalar için sessizce devam etmesini sağlıyoruz
-                    pass
-            # --------------------------------------------------------
-            
-            return file_id
+            return file.get('id')
         except Exception as e:
-            st.error(f"Google Drive'a dosya yazma hatası! Lütfen 'dugun-botu@...' e-posta adresine Google Drive klasörünüz için 'Düzenleyici' izni verdiğinizden emin olun. Detay: {e}")
+            st.error(f"Google Drive'a dosya yazma hatası! Detay: {e}")
             return None
     return None
 
@@ -77,12 +62,17 @@ def delete_from_drive(file_name):
     if service:
         try:
             query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
-            results = service.files().list(q=query, fields="files(id, name)").execute()
+            results = service.files().list(
+                q=query, 
+                fields="files(id, name)",
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True
+            ).execute()
             items = results.get('files', [])
             
             if items:
                 for item in items:
-                    service.files().delete(fileId=item['id']).execute()
+                    service.files().delete(fileId=item['id'], supportsAllDrives=True).execute()
                 return True
         except Exception as e:
             st.error(f"Google Drive'dan silme hatası: {e}")
