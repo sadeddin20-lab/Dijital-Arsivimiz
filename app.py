@@ -53,7 +53,7 @@ def upload_to_drive(file_path, file_name):
             return None
     return None
 
-# --- TELEFONA TAM OTURAN MOBİL ARKA PLAN TASARIMI ---
+# --- TELEFONA TAM OTURAN VE BASIKLIĞI DÜZELTİLMİŞ ARKA PLAN ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -65,13 +65,13 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        /* 🚨 REİSİM, RESMİ TELEFON EKRANINA ENİNE VE BOYUNA TAM KİLİTLEYEN NİZAM 🚨 */
+        /* 🚨 REİSİM, RESMİN BASIKLIĞINI YOK EDEN VE TELEFONA TAM SIĞDIRAN KUSURSUZ CSS 🚨 */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: 100% 100% !important; /* 🚨 Resmi ekrana tam oturtur, boşluk bırakmaz */
-            background-position: center center !important;
+            background-size: cover !important; /* 🚨 Resmi esnetmez, doğal oranını korur (Basıklık bitti!) */
+            background-position: center 20% !important; /* Kişileri tam merkezde tutar */
             background-repeat: no-repeat !important;
-            background-attachment: scroll !important; /* Telefon klavyeleri açılınca resmin bozulmasını önler */
+            background-attachment: scroll !important;
             color: #FFFFFF;
         }}
         
@@ -81,10 +81,10 @@ if os.path.exists(BACKGROUND_IMAGE):
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin-bottom: 5px !important;
             padding-bottom: 5px !important;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important; /* Yazılar arka planda kaybolmasın diye zırhlı gölge */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important; /* Yazıların okunması için güçlü zırh gölgesi */
         }}
         
-        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU VE SİYAH BOŞLUĞUN SIFIRLANMASI */
+        /* DOSYA YÜKLEYİCİ ALANI VE SİYAH BOŞLUKLARIN YOK EDİLMESİ */
         .stFileUploader section {{
             background-color: transparent !important;
             border: none !important;
@@ -102,7 +102,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* KUSURSUZ GENİŞ BUTON YAPISI */
+        /* ENLEMESİNE UZUN VE ŞIK BUTON */
         .stFileUploader button {{
             background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
@@ -111,7 +111,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             min-width: 280px !important; 
             max-width: 450px !important; 
             border-radius: 12px !important;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.6) !important;
             transition: all 0.3s ease;
             order: 1 !important;
             margin-top: 45px !important;
@@ -161,7 +161,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             text-align: center;
             margin-top: 5px !important;
             display: block;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.9) !important;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9) !important;
         }}
         
         .admin-section {{
@@ -196,7 +196,7 @@ st.markdown("""
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**
+### **Pugeu aquí els moments mès bonics, divertits i especials que captureu. Gràcies ❤️**
 """)
 
 if "uploader_key" not in st.session_state:
