@@ -7,11 +7,14 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# --- AYARLAR ---
+# --- 4 GB YÜKLEME LİMİTİ AYARI ---
 st.config.set_option("server.maxUploadSize", 4096)
+
+# --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Düğün Fotoğraf Havuzu", page_icon="📸", layout="centered")
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
+# --- GOOGLE DRIVE AYARLARI ---
 def get_drive_service():
     try:
         oauth_info = st.secrets["textkey"]
@@ -31,7 +34,7 @@ def upload_to_drive(file_path, file_name):
         except Exception: return None
     return None
 
-# --- STİL VE MOBİL NİZAM (Resmi aşağı çekme ayarı) ---
+# --- STİL VE KUSURSUZ NİZAM ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
@@ -43,11 +46,11 @@ if os.path.exists(BACKGROUND_IMAGE):
         <style>
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            background-size: contain !important; 
-            /* 🚨 AŞAĞI ALAN NİZAM: 'top center' yerine '10% center' ile resim aşağı itildi 🚨 */
-            background-position: 10% center !important; 
+            /* 🚨 RESMİ AŞAĞI İTEN VE TAM OTURTAN NİZAM 🚨 */
+            background-size: cover !important; 
+            background-position: center 30% !important; /* Resim aşağı itildi */
             background-repeat: no-repeat !important;
-            background-attachment: scroll !important;
+            background-attachment: fixed !important;
             background-color: #121212 !important;
             color: #FFFFFF;
         }}
