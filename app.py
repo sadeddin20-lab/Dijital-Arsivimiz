@@ -7,11 +7,12 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# --- 4 GB YÜKLEME LİMİTİ ---
+# --- AYARLAR ---
 st.config.set_option("server.maxUploadSize", 4096)
 st.set_page_config(page_title="Düğün Fotoğraf Havuzu", page_icon="📸", layout="centered")
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
+# --- GOOGLE DRIVE ---
 def get_drive_service():
     try:
         oauth_info = st.secrets["textkey"]
@@ -25,55 +26,47 @@ def upload_to_drive(file_path, file_name):
     if service:
         try:
             file_metadata = {'name': file_name, 'parents': [DRIVE_FOLDER_ID]}
-            media = MediaFileUpload(file_path, chunksize=5*1024*1024, resumable=True) 
+            media = MediaFileUpload(file_path, chunksize=5*1024*1024, resumable=True)
             file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
             return file.get('id')
         except Exception: return None
     return None
 
-# --- STİL VE KUSURSUZ NİZAM ---
+# --- MOBİL İÇİN KESİN NİZAM ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
-BACKGROUND_IMAGE = "arka_plan.jpg" 
+BACKGROUND_IMAGE = "arka_plan.jpg"
 if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
-        .stApp {{
+        /* 🚨 MOBİL TELEFON İÇİN TAM EKRAN KİLİT NİZAMI 🚨 */
+        [data-testid="stAppViewContainer"] {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            /* 🚨 RESMİN BÜYÜMESİNİ ENGELLEYEN NİZAM 🚨 */
-            background-size: 100% auto !important; 
-            background-position: top center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: scroll !important;
-            background-color: #121212 !important;
-            color: #FFFFFF;
+            background-attachment: fixed;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover; /* Resmi enine boyuna, boşluk kalmadan yayar */
+            height: 100vh;
+            width: 100vw;
         }}
-        h1 {{ font-size: 20px !important; margin-top: 10px !important; text-shadow: 2px 2px 5px #000; }}
-        h3, p {{ font-size: 12px !important; margin-bottom: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        .stFileUploader section {{ background-color: transparent !important; border: none !important; margin: 0px auto !important; width: 100% !important; }}
-        .stFileUploader label {{ display: none !important; }}
-        .stFileUploader button {{
-            background-color: #FFFFFF !important; border: 2px solid #000000 !important;
-            padding: 8px 15px !important; width: 100% !important; max-width: 350px !important; 
-            border-radius: 12px !important; box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
-            margin-top: 10px !important;
+        
+        /* Arka planı sabitleyip içindeki içeriği kaydırılabilir yapmak için */
+        [data-testid="stMainBlockContainer"] {{
+            background: rgba(0, 0, 0, 0.4); /* Resim okunabilsin diye hafif karartma */
+            padding: 20px;
+            border-radius: 15px;
         }}
-        .stFileUploader button p, .stFileUploader button span {{ color: #000000 !important; font-weight: 900 !important; font-size: 16px !important; }}
-        .alt-talimat-yazisi {{ color: #FFFFFF !important; font-weight: bold !important; font-size: 11px !important; text-align: center; margin-top: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        .admin-section {{ background-color: rgba(0, 0, 0, 0.85); padding: 10px; border-radius: 12px; margin-top: 20px !important; border: 1px solid #ff4b4b; }}
+        
+        .stApp {{ background: transparent !important; }}
         </style>
     """, unsafe_allow_html=True)
 
-# --- ANA SAYFA (YÜKLEME) ---
+# --- ANA SAYFA ---
 st.title("📸 Hoş geldiniz!")
-st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz. 😄**")
-st.markdown("### **Fotoğrafları ve Videoları buraya yükleyin. Teşekkürler ❤️**")
-st.title("📸 Benvinguts!")
-st.markdown("### **Aquesta nit, sou els fotògrafs. 😄**")
-st.markdown("### **Pugeu aquí els moments especials. Gràcies ❤️**")
+st.markdown("### **Fotoğrafları buraya yükleyin.**")
 
 uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True)
 if uploaded_files:
@@ -81,24 +74,19 @@ if uploaded_files:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"{timestamp}_{uploaded_file.name}"
         local_path = os.path.join("temp_local", file_name)
+        if not os.path.exists("temp_local"): os.makedirs("temp_local")
         with open(local_path, "wb") as f: f.write(uploaded_file.getbuffer())
         upload_to_drive(local_path, file_name)
-    st.success("Tüm dosyalar başarıyla yüklendi!")
+    st.success("Başarıyla yüklendi!")
     st.rerun()
 
-# --- YÖNETİCİ PANELİ (UPLOAD BUTONUNUN ALTINDA) ---
-st.markdown("<hr>", unsafe_allow_html=True)
-admin_password = st.text_input("Yönetici şifresi:", type="password", key="admin_pass_input")
+# --- YÖNETİCİ PANELİ ---
+st.markdown("<br><hr>", unsafe_allow_html=True)
+admin_password = st.text_input("Yönetici şifresi:", type="password")
 if admin_password == "145348":
-    st.markdown('<div class="admin-section">', unsafe_allow_html=True)
     st.header("👑 Medya Yönetim")
     files = os.listdir("temp_local") if os.path.exists("temp_local") else []
     for media_file in sorted([f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))], reverse=True):
-        local_file_path = os.path.join("temp_local", media_file)
-        c1, c2 = st.columns([3, 1])
-        with c1: st.caption(f"📄 {media_file}")
-        with c2: 
-            if st.button(f"❌ Sil", key=f"del_{media_file}"):
-                if os.path.exists(local_file_path): os.remove(local_file_path)
-                st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+        if st.button(f"❌ Sil: {media_file}"):
+            os.remove(os.path.join("temp_local", media_file))
+            st.rerun()
