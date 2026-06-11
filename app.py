@@ -2,7 +2,8 @@ import streamlit as st
 import os
 import base64
 from datetime import datetime
-from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
@@ -16,20 +17,29 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
+# --- GOOGLE DRIVE BAĞLANTI AYARLARI (YENİ OAUTH2 MİMARİSİ) ---
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        # Secrets panelindeki [textkey] tablosunu doğrudan sözlük (dict) olarak okuyoruz
-        creds_dict = dict(st.secrets["textkey"])
-        # JSON yapısındaki ters bölü (\n) işaretlerini sistemin doğru okuması için nizamlıyoruz
-        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+        # Secrets panelindeki yeni OAuth bilgilerini doğrudan okuyoruz
+        oauth_info = st.secrets["textkey"]
         
-        creds = service_account.Credentials.from_service_account_info(creds_dict)
+        creds = Credentials(
+            token=None,  # İlk erişim tokenı boş bırakılır, refresh_token ile otomatik üretilir
+            refresh_token=oauth_info["refresh_token"],
+            client_id=oauth_info["client_id"],
+            client_secret=oauth_info["client_secret"],
+            token_uri="https://oauth2.googleapis.com/token"
+        )
+        
+        # Token süresi dolduysa arka planda sizin adınıza otomatik olarak tazeliyoruz
+        if not creds.valid:
+            creds.refresh(Request())
+            
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
-        st.error(f"Google Drive bağlantı hatası: {e}")
+        st.error(f"Google Drive kimlik doğrulama hatası: {e}")
         return None
 
 def upload_to_drive(file_path, file_name):
@@ -40,17 +50,9 @@ def upload_to_drive(file_path, file_name):
                 'name': file_name,
                 'parents': [DRIVE_FOLDER_ID]
             }
-            # Kota aşımını engellemek için parça boyutunu optimize ediyoruz
-            media = MediaFileUpload(file_path, chunksize=256*1024, resumable=True)
-            
-            # supportsAllDrives=True ekleyerek botun kota alanını genişletiyoruz ve yetkiyi zorluyoruz
-            file = service.files().create(
-                body=file_metadata, 
-                media_body=media, 
-                fields='id',
-                supportsAllDrives=True
-            ).execute()
-            
+            media = MediaFileUpload(file_path, chunksize=1024*1024, resumable=True)
+            # İşlem doğrudan sizin adınıza yapıldığı için kota problemi ve yetki hatası yaşanmaz
+            file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
             return file.get('id')
         except Exception as e:
             st.error(f"Google Drive'a dosya yazma hatası! Detay: {e}")
@@ -62,17 +64,12 @@ def delete_from_drive(file_name):
     if service:
         try:
             query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
-            results = service.files().list(
-                q=query, 
-                fields="files(id, name)",
-                supportsAllDrives=True,
-                includeItemsFromAllDrives=True
-            ).execute()
+            results = service.files().list(q=query, fields="files(id, name)").execute()
             items = results.get('files', [])
             
             if items:
                 for item in items:
-                    service.files().delete(fileId=item['id'], supportsAllDrives=True).execute()
+                    service.files().delete(fileId=item['id']).execute()
                 return True
         except Exception as e:
             st.error(f"Google Drive'dan silme hatası: {e}")
