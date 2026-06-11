@@ -8,7 +8,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # --- 4 GB YÜKLEME LİMİTİ AYARI ---
-# Sunucu yükleme limitini kod seviyesinde 4096 MB (4 GB) olarak set ediyoruz reisim.
 st.config.set_option("server.maxUploadSize", 4096)
 
 # --- SAYFA AYARLARI ---
@@ -19,17 +18,15 @@ st.set_page_config(
 )
 
 # --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
-# Reisim, onayladığınız Google Drive klasör ID'niz buraya jilet gibi işlendi:
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        # Streamlit Cloud panelindeki 'Secrets' kısmına kaydettiğimiz şifreyi okur reisim
         creds_dict = json.loads(st.secrets["textkey"])
         creds = service_account.Credentials.from_service_account_info(creds_dict)
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
-        st.error(f"Google Drive bağlantı hatası reisim: {e}")
+        st.error(f"Google Drive bağlantı hatası: {e}")
         return None
 
 def upload_to_drive(file_path, file_name):
@@ -39,11 +36,27 @@ def upload_to_drive(file_path, file_name):
             'name': file_name,
             'parents': [DRIVE_FOLDER_ID]
         }
-        # Büyük videolar yarıda kesilmesin diye resumable=True olarak ayarladım reisim
         media = MediaFileUpload(file_path, resumable=True)
         file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         return file.get('id')
     return None
+
+def delete_from_drive(file_name):
+    service = get_drive_service()
+    if service:
+        try:
+            # Önce silinecek dosyanın ID'sini klasör içinde ismiyle aratıyoruz
+            query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
+            results = service.files().list(q=query, fields="files(id, name)").execute()
+            items = results.get('files', [])
+            
+            if items:
+                for item in items:
+                    service.files().delete(fileId=item['id']).execute()
+                return True
+        except Exception as e:
+            st.error(f"Google Drive'dan silme hatası: {e}")
+    return False
 
 # --- ÖZEL ARKA PLAN ENTEGRASYONU ---
 def get_base64_image(image_path):
@@ -128,41 +141,80 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
+# Yerel yedekleme/listeleme klasör kontrolü
+LOCAL_DIR = "temp_local"
+if not os.path.exists(LOCAL_DIR):
+    os.makedirs(LOCAL_DIR)
+
 if uploaded_files:
     success_count = 0
-    if not os.path.exists("temp"):
-        os.makedirs("temp")
-        
     for uploaded_file in uploaded_files:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"{timestamp}_{uploaded_file.name}"
-        temp_path = os.path.join("temp", file_name)
+        local_path = os.path.join(LOCAL_DIR, file_name)
         
-        # Dosyayı geçici olarak sunucu hafızasına alıyoruz reisim
-        with open(temp_path, "wb") as f:
+        # Yönetici panelinde silme ve listeleme yapabilmek için yerel kopyasını oluşturuyoruz
+        with open(local_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
         
-        # Google Drive klasörünüze gönderiliyor...
-        drive_id = upload_to_drive(temp_path, file_name)
+        # Google Drive'a gönderim
+        drive_id = upload_to_drive(local_path, file_name)
         
         if drive_id:
             success_count += 1
-            os.remove(temp_path) # Sunucuda şişme yapmasın diye işi biteni hemen siliyoruz reisim
-    
+            
     if success_count > 0:
         st.success(f"🎉 {success_count} adet anı başarıyla yüklendi! / S'han pujat {success_count} records correctament!")
 
 st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 
 # =======================================================
-# YÖNETİCİ PANELİ (GİRİŞ KONTROLÜ)
+# YÖNETİCİ PANELİ (GİRİŞ VE CANLI SİLME EKRANI)
 # =======================================================
 st.markdown('<div class="admin-section">', unsafe_allow_html=True)
 st.subheader("🔐 Yönetici Girişi")
 admin_password = st.text_input("Yönetici şifresini giriniz:", type="password", key="admin_pass_input")
 
 if admin_password == "145348":
-    st.success("Giriş Başarılı reisim! Tüm yüklemeler Google Drive klasörünüzde güvenle birikiyor. Klasörünüzü açarak anlık takip edebilirsiniz.")
+    st.success("Giriş Başarılı! Yönetim Paneli Aktif.")
+    st.write("---")
+    st.header("👑 Medya Yönetim ve Silme Ekranı")
+    
+    # Yerel hafızadaki dosyaları listele (En yeni en üstte)
+    files = os.listdir(LOCAL_DIR)
+    media_files = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.mp4', '.mov'))]
+    
+    if not media_files:
+        st.info("Henüz havuzda yüklenmiş bir dosya bulunmuyor.")
+    else:
+        st.write(f"**Havuzdaki Toplam Dosya Sayısı:** {len(media_files)}")
+        st.write("---")
+        
+        for media_file in sorted(media_files, reverse=True):
+            local_file_path = os.path.join(LOCAL_DIR, media_file)
+            
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                st.caption(f"📄 Dosya Adı: {media_file}")
+                if media_file.lower().endswith(('.mp4', '.mov')):
+                    st.video(local_file_path)
+                else:
+                    st.image(local_file_path, width=250)
+            
+            with col2:
+                st.write("<br><br>", unsafe_allow_html=True)
+                if st.button(f"❌ Sil", key=f"del_{media_file}"):
+                    # 1. Google Drive'dan sil
+                    drive_deleted = delete_from_drive(media_file)
+                    # 2. Yerel sunucudan sil
+                    if os.path.exists(local_file_path):
+                        os.remove(local_file_path)
+                    
+                    st.error(f"Silindi: {media_file}")
+                    st.rerun()
+            st.write("------------------------------------")
+            
 elif admin_password:
-    st.error("Hatalı Şifre girdiniz reisim!")
+    st.error("Hatalı Şifre girdiniz!")
 st.markdown('</div>', unsafe_allow_html=True)
