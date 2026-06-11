@@ -69,7 +69,7 @@ def delete_from_drive(file_name):
             st.error(f"Google Drive'dan silme hatası: {e}")
     return False
 
-# --- ÖZEL ARKA PLAN VE ASIL BUTON ÖZELLEŞTİRME ---
+# --- ÖZEL ARKA PLAN VE BUTON ALTINA YAZI EKLEME TASARIMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -99,42 +99,62 @@ if os.path.exists(BACKGROUND_IMAGE):
         
         /* FOTOĞRAF SEÇME ALANININ DIŞ KUTUSU */
         .stFileUploader section {{
-            background-color: rgba(0, 0, 0, 0.6) !important; /* Arkasını koyu şık bir transparan yaptık */
+            background-color: rgba(0, 0, 0, 0.6) !important;
             border-radius: 15px;
             padding: 20px;
             border: 2px dashed rgba(255, 255, 255, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }}
         
-        /* Üstteki beyaz bilgilendirme yazısı */
-        .stFileUploader label p {{
-            color: #FFFFFF !important;
-            font-weight: bold !important;
-            font-size: 16px !important;
+        /* 🚨 Streamlit'in kendi üst etiketini tamamen gizliyoruz 🚨 */
+        .stFileUploader label {{
+            display: none !important;
         }}
         
-        /* 🚨 REİSİM, ARADIĞIMIZ O ASIL "UPLOAD / BROWSE FILES" BUTONU BURASI 🚨 */
+        /* ASIL "UPLOAD / BROWSE FILES" BUTONU */
         .stFileUploader button {{
-            background-color: #FFFFFF !important; /* Butonun kendisini bembeyaz yaptık */
+            background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
-            padding: 12px 28px !important; /* Butonu irileştirdik */
+            padding: 12px 28px !important;
             border-radius: 10px !important;
             transition: all 0.3s ease;
+            order: 1 !important; /* Butonu en üste zorluyoruz */
+            margin-bottom: 15px !important;
         }}
         
-        /* Butonun içindeki o upload / browse yazan harfler */
+        /* Butonun içindeki iri ve kalın harfler */
         .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
-            color: #000000 !important; /* Harfleri simsiyah (koyu) yaptık */
-            font-weight: 900 !important; /* Harfleri ekstra kalın yaptık */
-            font-size: 20px !important; /* Harfleri büyük yaptık, kabak gibi belli olsun */
+            color: #000000 !important;
+            font-weight: 900 !important;
+            font-size: 20px !important;
         }}
         
-        /* Fareyle butonun üzerine gelince hafif parlaması için */
+        /* Butonun üzerine gelince parlaması */
         .stFileUploader button:hover {{
-            background-color: #ff4b4b !important; /* Üzerine gelince düğün konseptine uygun kırmızı olsun */
+            background-color: #ff4b4b !important;
             border-color: #FFFFFF !important;
         }}
         .stFileUploader button:hover p {{
-            color: #FFFFFF !important; /* Üzerine gelince harfler beyaz olsun */
+            color: #FFFFFF !important;
+        }}
+        
+        /* Sürükle bırak alanındaki diğer küçük yazıları alt sıraya itiyoruz */
+        .stFileUploader [data-testid="stFileUploadDropzone"] {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }}
+        
+        /* 🚨 REİSİM, İSTEDİĞİNİZ O YAZIYI BUTONUN ALTINA HİZALAYAN ÖZEL CSS ALANI 🚨 */
+        .alt-talimat-yazisi {{
+            color: #FFFFFF !important;
+            font-weight: bold !important;
+            font-size: 16px !important;
+            text-align: center;
+            margin-top: 10px !important;
+            display: block;
         }}
         
         .admin-section {{
@@ -176,12 +196,16 @@ st.markdown("""
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = "uploader_first"
 
+# Boş etiket vererek eski üst yazıyı tamamen sıfırladık
 uploaded_files = st.file_uploader(
-    "Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB):",
+    "",
     type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
     accept_multiple_files=True,
     key=st.session_state["uploader_key"]
 )
+
+# 🚨 REİSİM, YAZIYI KOD SALOSUNDA TAM BUTONUN ALTINA BU HTML ŞABLONUYLA YERLEŞTİRDİK 🚨
+st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB)</p>', unsafe_allow_html=True)
 
 LOCAL_DIR = "temp_local"
 if not os.path.exists(LOCAL_DIR):
