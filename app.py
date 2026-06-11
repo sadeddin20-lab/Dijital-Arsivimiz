@@ -69,7 +69,7 @@ def delete_from_drive(file_name):
             st.error(f"Google Drive'dan silme hatası: {e}")
     return False
 
-# --- ÖZEL ARKA PLAN ENTEGRASYONU ---
+# --- ÖZEL ARKA PLAN VE YÜKLEYİCİ ÖZELLEŞTİRME ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -96,12 +96,32 @@ if os.path.exists(BACKGROUND_IMAGE):
             margin-bottom: 5px !important;
             padding-bottom: 5px !important;
         }}
+        
+        /* DOSYA YÜKLEYİCİ ALANI VE HARF AYARLARI */
         .stFileUploader section {{
-            background-color: rgba(0, 0, 0, 0.6) !important;
+            background-color: rgba(255, 255, 255, 0.85) !important; /* Arka planı açık renk yaparak yazıları patlattık */
             border-radius: 15px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border: 2px dashed #000000;
         }}
+        
+        /* Yükleyici içindeki ana talimat yazısı */
+        .stFileUploader label p {{
+            color: #000000 !important;
+            font-weight: 900 !important; /* Ekstra Kalın (Koyu) */
+            font-size: 20px !important; /* Büyük harfler */
+        }}
+        
+        /* Sürükle bırak / Browse dosyası yazıları */
+        .stFileUploader data-testid="stFileUploadDropzone" {{
+            color: #000000 !important;
+        }}
+        .stFileUploader small {{
+            color: #111111 !important;
+            font-weight: bold !important;
+            font-size: 14px !important;
+        }}
+        
         .admin-section {{
             background-color: rgba(0, 0, 0, 0.8);
             padding: 20px;
@@ -177,11 +197,9 @@ st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 # =======================================================
 # YÖNETİCİ PANELİ (GİRİŞ VEYA SİLME ALANI)
 # =======================================================
-# Şifre kutusu ilk başta tamamen şeffaf ve sade bir şekilde durur
 admin_password = st.text_input("Yönetici şifresini giriniz:", type="password", key="admin_pass_input")
 
 if admin_password == "145348":
-    # Siyah şerit tasarım (admin-section) SADECE doğru şifre girildiğinde devreye girer
     st.markdown('<div class="admin-section">', unsafe_allow_html=True)
     st.success("Giriş Başarılı! Yönetim Paneli Aktif.")
     st.write("---")
