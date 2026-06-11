@@ -43,14 +43,13 @@ if os.path.exists(BACKGROUND_IMAGE):
         <style>
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
-            /* 🚨 RESMİ DİKEYDE UZATAN VE TAM OTURTAN NİZAM 🚨 */
+            /* 🚨 RESMİ TAM OTURTAN VE KESMEYEN NİZAM 🚨 */
             background-size: cover !important; 
             background-position: center top !important;
             background-repeat: no-repeat !important;
             background-attachment: fixed !important;
             color: #FFFFFF;
         }}
-        /* Yazı ve Buton Nizamı */
         h1, h3, h2, p {{ text-align: center; color: #FFFFFF; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important; }}
         .stFileUploader section {{ background-color: transparent !important; border: none !important; margin: 0px auto !important; width: 100% !important; }}
         .stFileUploader label {{ display: none !important; }}
@@ -58,15 +57,16 @@ if os.path.exists(BACKGROUND_IMAGE):
             background-color: #FFFFFF !important; border: 2px solid #000000 !important;
             padding: 14px 20px !important; width: 100% !important; max-width: 450px !important; 
             border-radius: 12px !important; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
-            margin-top: 20px !important; margin-bottom: 20px !important;
+            margin-top: 45px !important; margin-bottom: 30px !important;
         }}
-        .stFileUploader button p, .stFileUploader button span {{ color: #000000 !important; font-weight: 900 !important; font-size: 20px !important; }}
+        .stFileUploader button p, .stFileUploader button span {{ color: #000000 !important; font-weight: 900 !important; font-size: 22px !important; }}
+        .alt-talimat-yazisi {{ color: #FFFFFF !important; font-weight: bold !important; font-size: 16px !important; text-align: center; margin-top: 5px !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.9) !important; }}
         .admin-section {{ background-color: rgba(0, 0, 0, 0.85); padding: 20px; border-radius: 15px; border: 1px solid #ff4b4b; margin-top: 40px; }}
         </style>
     """, unsafe_allow_html=True)
 
 # --- ANA SAYFA ---
-# 🚨 YAZIYI BÜYÜTTÜM VE RENGİ MÜHÜRLENDİ 🚨
+# 🚨 BÜYÜTÜLMÜŞ İSİM NİZAMI 🚨
 st.markdown("""
     <div style="text-align: center; font-size: 50px; font-weight: bold; color: #C5A034; margin-top: 10px; text-shadow: 3px 3px 10px #000;">
         𝓜𝓪𝓻𝓲𝓪 ∞ 𝓒𝓪𝓷𝓫𝓮𝓻𝓴
@@ -74,10 +74,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("📸 Hoş geldiniz!")
-st.markdown("### **Fotoğraflarınızı ve Videolarınızı yükleyin.**")
+st.markdown("### **Bu gecenin fotoğrafçısı sizsiniz. 😄**")
+st.title("📸 Benvinguts!")
+st.markdown("### **Aquesta nit, sou els fotògrafs. 😄**")
 
 if "uploader_key" not in st.session_state: st.session_state["uploader_key"] = "uploader_first"
 uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4", "mov"], accept_multiple_files=True, key=st.session_state["uploader_key"])
+st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı yükleyin / Pugeu les vostres fotos</p>', unsafe_allow_html=True)
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
@@ -91,7 +94,7 @@ if uploaded_files:
     st.session_state["uploader_key"] = f"uploader_{datetime.now().strftime('%M%S')}"
     st.rerun()
 
-st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("<br><hr>", unsafe_allow_html=True)
 
 # --- YÖNETİCİ PANELİ ---
 admin_password = st.text_input("Yönetici şifresi:", type="password", key="admin_pass_input")
