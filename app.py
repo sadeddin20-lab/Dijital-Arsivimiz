@@ -17,26 +17,21 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- GOOGLE DRIVE BAĞLANTI AYARLARI (YENİ OAUTH2 MİMARİSİ) ---
+# --- GOOGLE DRIVE BAĞLANTI AYARLARI ---
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        # Secrets panelindeki yeni OAuth bilgilerini doğrudan okuyoruz
         oauth_info = st.secrets["textkey"]
-        
         creds = Credentials(
-            token=None,  # İlk erişim tokenı boş bırakılır, refresh_token ile otomatik üretilir
+            token=None,
             refresh_token=oauth_info["refresh_token"],
             client_id=oauth_info["client_id"],
             client_secret=oauth_info["client_secret"],
             token_uri="https://oauth2.googleapis.com/token"
         )
-        
-        # Token süresi dolduysa arka planda sizin adınıza otomatik olarak tazeliyoruz
         if not creds.valid:
             creds.refresh(Request())
-            
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
         st.error(f"Google Drive kimlik doğrulama hatası: {e}")
@@ -51,7 +46,6 @@ def upload_to_drive(file_path, file_name):
                 'parents': [DRIVE_FOLDER_ID]
             }
             media = MediaFileUpload(file_path, chunksize=1024*1024, resumable=True)
-            # İşlem doğrudan sizin adınıza yapıldığı için kota problemi ve yetki hatası yaşanmaz
             file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
             return file.get('id')
         except Exception as e:
@@ -130,9 +124,7 @@ else:
 st.title("📸 Hoş geldiniz!")
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
-
 ### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
-
 ### **Teşekkürler ❤️**
 """)
 
@@ -141,18 +133,21 @@ st.markdown("<br><hr><br>", unsafe_allow_html=True)
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-
 ### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
-
 ### **Gràcies ❤️**
 """)
 
 st.write("---")
 
+# Yükleyici hafızasını kontrol altında tutmak için Session State anahtarı kullanıyoruz
+if "uploader_key" not in st.session_state:
+    st.session_state["uploader_key"] = "uploader_first"
+
 uploaded_files = st.file_uploader(
     "Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB):",
     type=["jpg", "jpeg", "png", "heic", "mp4", "mov"],
-    accept_multiple_files=True
+    accept_multiple_files=True,
+    key=st.session_state["uploader_key"]
 )
 
 LOCAL_DIR = "temp_local"
@@ -176,6 +171,9 @@ if uploaded_files:
             
     if success_count > 0:
         st.success(f"🎉 {success_count} adet anı başarıyla yüklendi! / S'han pujat {success_count} records correctament!")
+        # Dosyalar başarıyla işlendiği an uploader kutusunun hafızasını patlatıp sıfırlıyoruz:
+        st.session_state["uploader_key"] = f"uploader_{datetime.now().strftime('%M%S')}"
+        st.rerun()
 
 st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 
@@ -215,6 +213,7 @@ if admin_password == "145348":
             with col2:
                 st.write("<br><br>", unsafe_allow_html=True)
                 if st.button(f"❌ Sil", key=f"del_{media_file}"):
+                    # Önce Drive'dan, sonra yerel klasörden jilet gibi kazıyoruz
                     delete_from_drive(media_file)
                     if os.path.exists(local_file_path):
                         os.remove(local_file_path)
