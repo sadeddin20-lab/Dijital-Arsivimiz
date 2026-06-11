@@ -93,6 +93,8 @@ if os.path.exists(BACKGROUND_IMAGE):
             text-align: center;
             color: #FFFFFF;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin-bottom: 5px !important;
+            padding-bottom: 5px !important;
         }}
         .stFileUploader section {{
             background-color: rgba(0, 0, 0, 0.6) !important;
@@ -121,25 +123,21 @@ else:
 # ANA SAYFA: MISAFIR YÜKLEME ALANI (HERKESE AÇIK)
 # =======================================================
 
+# Türkçe Karşılama
 st.title("📸 Hoş geldiniz!")
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
-### **Yakaldığınız en güzel, en komik ve en özel anları buraya yükleyin.**
-### **Teşekkürler ❤️**
+### **Yaladığınız en güzel, en komik ve en özel anları buraya yükleyin. Teşekkürler ❤️**
 """)
 
-st.markdown("<br><hr><br>", unsafe_allow_html=True)
-
+# Çirkin boş satır ve çizgiler kaldırıldı, Katalanca metin doğrudan nizamlıca bağlandı
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
-### **Pugeu aquí els moments més bonics, divertits i especials que captureu.**
-### **Gràcies ❤️**
+### **Pugeu aquí els moments més bonics, divertits i especials que captureu. Gràcies ❤️**
 """)
 
-st.write("---")
-
-# Yükleyici hafızasını kontrol altında tutmak için Session State anahtarı kullanıyoruz
+# Yükleyici hafızasını kontrol altında tutmak için Session State anahtarı
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = "uploader_first"
 
@@ -171,7 +169,6 @@ if uploaded_files:
             
     if success_count > 0:
         st.success(f"🎉 {success_count} adet anı başarıyla yüklendi! / S'han pujat {success_count} records correctament!")
-        # Dosyalar başarıyla işlendiği an uploader kutusunun hafızasını patlatıp sıfırlıyoruz:
         st.session_state["uploader_key"] = f"uploader_{datetime.now().strftime('%M%S')}"
         st.rerun()
 
@@ -213,7 +210,6 @@ if admin_password == "145348":
             with col2:
                 st.write("<br><br>", unsafe_allow_html=True)
                 if st.button(f"❌ Sil", key=f"del_{media_file}"):
-                    # Önce Drive'dan, sonra yerel klasörden jilet gibi kazıyoruz
                     delete_from_drive(media_file)
                     if os.path.exists(local_file_path):
                         os.remove(local_file_path)
