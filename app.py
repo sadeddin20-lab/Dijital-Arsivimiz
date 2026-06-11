@@ -7,10 +7,8 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# --- 4 GB YÜKLEME LİMİTİ AYARI ---
+# --- AYARLAR ---
 st.config.set_option("server.maxUploadSize", 4096)
-
-# --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Düğün Fotoğraf Havuzu", page_icon="📸", layout="centered")
 DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
@@ -33,7 +31,7 @@ def upload_to_drive(file_path, file_name):
         except Exception: return None
     return None
 
-# --- STİL VE MOBİL NİZAM (Maria yazısı kesilmesin diye 'contain' ayarı) ---
+# --- STİL VE MOBİL NİZAM (Resmi aşağı çekme ayarı) ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
@@ -46,7 +44,8 @@ if os.path.exists(BACKGROUND_IMAGE):
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
             background-size: contain !important; 
-            background-position: top center !important;
+            /* 🚨 AŞAĞI ALAN NİZAM: 'top center' yerine '10% center' ile resim aşağı itildi 🚨 */
+            background-position: 10% center !important; 
             background-repeat: no-repeat !important;
             background-attachment: scroll !important;
             background-color: #121212 !important;
@@ -65,8 +64,6 @@ if os.path.exists(BACKGROUND_IMAGE):
         }}
         .stFileUploader button p, .stFileUploader button span {{ color: #000000 !important; font-weight: 900 !important; font-size: 16px !important; }}
         .alt-talimat-yazisi {{ color: #FFFFFF !important; font-weight: bold !important; font-size: 11px !important; text-align: center; margin-top: 2px !important; text-shadow: 2px 2px 5px #000; }}
-        
-        /* Yönetici paneli en yukarıda */
         .admin-section {{ background-color: rgba(0, 0, 0, 0.85); padding: 10px; border-radius: 12px; margin-top: 5px !important; border: 1px solid #ff4b4b; }}
         </style>
     """, unsafe_allow_html=True)
@@ -100,4 +97,12 @@ uploaded_files = st.file_uploader("", type=["jpg", "jpeg", "png", "heic", "mp4",
 st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı seçin / Selecciona fotos (Maks: 4GB)</p>', unsafe_allow_html=True)
 
 if uploaded_files:
-    for uploaded_file in
+    for uploaded_file in uploaded_files:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"{timestamp}_{uploaded_file.name}"
+        local_path = os.path.join("temp_local", file_name)
+        with open(local_path, "wb") as f: f.write(uploaded_file.getbuffer())
+        upload_to_drive(local_path, file_name)
+    st.success("Başarıyla yüklendi!")
+    st.session_state["uploader_key"] = f"uploader_{datetime.now().strftime('%M%S')}"
+    st.rerun()
