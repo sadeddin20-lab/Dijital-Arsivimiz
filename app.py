@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import base64
-import json
 from datetime import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -22,10 +21,10 @@ DRIVE_FOLDER_ID = "1fI3VtB34YJnmeJXvVAlY5bcj4pdtc137"
 
 def get_drive_service():
     try:
-        # Hata veren 'textkey' yerine yeni tanımladığımız 'drive_creds_base64' anahtarını çağırıyoruz
-        base64_creds = st.secrets["drive_creds_base64"]
-        creds_json = base64.b64decode(base64_creds).decode('utf-8')
-        creds_dict = json.loads(creds_json)
+        # Secrets içindeki [textkey] tablosunu doğrudan sözlük (dict) olarak alıyoruz
+        creds_dict = dict(st.secrets["textkey"])
+        # JSON içerisinde yer alan \n kaçış karakterlerini doğru okuması için temizlik yapıyoruz
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
         
         creds = service_account.Credentials.from_service_account_info(creds_dict)
         return build('drive', 'v3', credentials=creds)
