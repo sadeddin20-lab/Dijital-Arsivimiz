@@ -35,13 +35,18 @@ def get_drive_service():
 def upload_to_drive(file_path, file_name):
     service = get_drive_service()
     if service:
-        file_metadata = {
-            'name': file_name,
-            'parents': [DRIVE_FOLDER_ID]
-        }
-        media = MediaFileUpload(file_path, resumable=True)
-        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        return file.get('id')
+        try:
+            file_metadata = {
+                'name': file_name,
+                'parents': [DRIVE_FOLDER_ID]
+            }
+            # Büyük dosyaların (özellikle videoların) parça parça güvenle yüklenmesi için ayarlar optimize edildi
+            media = MediaFileUpload(file_path, chunksize=1024*1024, resumable=True)
+            file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            return file.get('id')
+        except Exception as e:
+            st.error(f"Google Drive'a dosya yazma hatası! Lütfen 'dugun-botu@...' e-posta adresine Google Drive klasörünüz için 'Düzenleyici' izni verdiğinizden emin olun. Detay: {e}")
+            return None
     return None
 
 def delete_from_drive(file_name):
