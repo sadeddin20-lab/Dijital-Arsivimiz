@@ -69,7 +69,7 @@ def delete_from_drive(file_name):
             st.error(f"Google Drive'dan silme hatası: {e}")
     return False
 
-# --- ÖZEL ARKA PLAN VE MESAFELİ BUTON TASARIMI ---
+# --- ÖZEL ARKA PLAN VE ENLEMESİNE GENİŞ BUTON TASARIMI ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         data = base64.b64encode(image_file.read()).decode()
@@ -97,7 +97,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding-bottom: 5px !important;
         }}
         
-        /* DOSYA YÜKLEYİCİ ALANI */
+        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU VE SİYAH BOŞLUĞUN SIFIRLANMASI */
         .stFileUploader section {{
             background-color: transparent !important;
             border: none !important;
@@ -107,6 +107,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100% !important;
             max-width: 500px;
         }}
         
@@ -114,40 +115,46 @@ if os.path.exists(BACKGROUND_IMAGE):
             display: none !important;
         }}
         
-        /* 🚨 REİSİM, DİĞER YAZILARLA ARASINA BOŞLUK EKLEDİĞİMİZ UZUN BUTON 🚨 */
+        /* 🚨 REİSİM, ARKA BEYAZLIĞINI ENLEMESİNE GENİŞLETTİĞİMİZ KUSURSUZ BUTON YAPISI 🚨 */
         .stFileUploader button {{
             background-color: #FFFFFF !important;
             border: 2px solid #000000 !important;
-            padding: 14px 0px !important;
+            padding: 14px 20px !important;
+            
+            /* Enini tam genişlik yapıp buton sınırlarını kilitledik */
             width: 100% !important;
-            max-width: 450px !important;
+            min-width: 320px !important; 
+            max-width: 450px !important; 
+            
             border-radius: 12px !important;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4) !important;
             transition: all 0.3s ease;
             order: 1 !important;
-            
-            /* Üstteki hoş geldiniz ve alttaki talimat yazısıyla mesafesini açtık */
-            margin-top: 45px !important; /* Üstteki yazılardan aşağıya ittik */
-            margin-bottom: 30px !important; /* Alttaki yazıdan yukarıya açtık */
-            display: block !important;
+            margin-top: 45px !important;
+            margin-bottom: 30px !important;
+            display: inline-flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }}
         
-        /* Butonun içindeki iri ve kalın harfler */
-        .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
+        /* Butonun içindeki "Upload" yazısının taşmasını önleyen ve ortalayan nizam */
+        .stFileUploader button p, .stFileUploader button div, .stFileUploader button span, .stFileUploader button data-testid {{
             color: #000000 !important;
             font-weight: 900 !important;
             font-size: 22px !important;
             text-align: center !important;
-            width: 100% !important;
+            display: inline-block !important;
+            width: auto !important;
+            white-space: nowrap !important; /* Yazının kırılmasını ve taşmasını engeller */
         }}
         
-        /* Butonun üzerine gelince parlaması */
+        /* Butonun üzerine gelindiğinde parlaması */
         .stFileUploader button:hover {{
             background-color: #ff4b4b !important;
             border-color: #FFFFFF !important;
             transform: scale(1.02);
         }}
-        .stFileUploader button:hover p {{
+        .stFileUploader button:hover p, .stFileUploader button:hover span {{
             color: #FFFFFF !important;
         }}
         
@@ -160,6 +167,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             width: 100% !important;
         }}
         
+        /* Sürükle bırak kalıntılarını gizliyoruz */
         .stFileUploader svg, .stFileUploader data-testid="stFileUploadDropzone" > div:dir(ltr) {{
             display: none !important;
         }}
@@ -170,7 +178,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             font-weight: bold !important;
             font-size: 16px !important;
             text-align: center;
-            margin-top: 5px !important; /* Butonun kendi margin değeriyle birleşerek nizamlı duracak */
+            margin-top: 5px !important;
             display: block;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }}
@@ -180,7 +188,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding: 20px;
             border-radius: 15px;
             border: 1px solid #ff4b4b;
-            margin-top: 40px; /* Yönetici panelini de biraz aşağı kaydırıp ferahlattık */
+            margin-top: 40px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -217,7 +225,7 @@ uploaded_files = st.file_uploader(
     key=st.session_state["uploader_key"] if "uploader_key" in st.session_state else "uploader_first"
 )
 
-# Yazı butonun altında dengeli bir boşlukla duruyor
+# Yazı uzun butonun altında dengeli mesafede duruyor
 st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB)</p>', unsafe_allow_html=True)
 
 LOCAL_DIR = "temp_local"
