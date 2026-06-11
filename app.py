@@ -65,6 +65,7 @@ if os.path.exists(BACKGROUND_IMAGE):
     bg_image_base64 = get_base64_image(BACKGROUND_IMAGE)
     st.markdown(f"""
         <style>
+        /* BİLGİSAYARLAR İÇİN ARKA PLAN NİZAMI */
         .stApp {{
             background-image: url("data:image/jpeg;base64,{bg_image_base64}");
             background-size: cover;
@@ -73,6 +74,16 @@ if os.path.exists(BACKGROUND_IMAGE):
             background-attachment: fixed;
             color: #FFFFFF;
         }}
+        
+        /* 🚨 REİSİM, TELEFONLAR İÇİN BOYUTU KÜÇÜLTEN MOBİL AYAR 🚨 */
+        @media (max-width: 768px) {{
+            .stApp {{
+                background-size: contain !important; /* Resmi küçültüp ekrana sığdırır */
+                background-position: top center !important; /* Üstten başlatır */
+                background-color: #121212 !important; /* Resmin bitip ekranın uzadığı alt kısımları siyah asil bir tonda tutar */
+            }}
+        }}
+        
         h1, h3, h2, p {{
             text-align: center;
             color: #FFFFFF;
@@ -81,7 +92,7 @@ if os.path.exists(BACKGROUND_IMAGE):
             padding-bottom: 5px !important;
         }}
         
-        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU VE SİYAH BOŞLUĞUN SIFIRLANMASI */
+        /* DOSYA YÜKLEYİCİ DIŞ KUTUSU */
         .stFileUploader section {{
             background-color: transparent !important;
             border: none !important;
@@ -118,7 +129,6 @@ if os.path.exists(BACKGROUND_IMAGE):
             align-items: center !important;
         }}
         
-        /* Butonun içindeki "Upload" yazısının taşmasını önleyen ve ortalayan nizam */
         .stFileUploader button p, .stFileUploader button div, .stFileUploader button span {{
             color: #000000 !important;
             font-weight: 900 !important;
@@ -129,7 +139,6 @@ if os.path.exists(BACKGROUND_IMAGE):
             white-space: nowrap !important;
         }}
         
-        /* Butonun üzerine gelindiğinde parlaması */
         .stFileUploader button:hover {{
             background-color: #ff4b4b !important;
             border-color: #FFFFFF !important;
@@ -209,7 +218,6 @@ uploaded_files = st.file_uploader(
     key=st.session_state["uploader_key"]
 )
 
-# Yazı uzun butonun altında dengeli mesafede duruyor
 st.markdown('<p class="alt-talimat-yazisi">Fotoğraflarınızı ve Videolarınızı seçin (Maks: 4GB) / Selecciona o arrossega fotos i vídeos (Màx: 4GB)</p>', unsafe_allow_html=True)
 
 LOCAL_DIR = "temp_local"
@@ -273,7 +281,6 @@ if admin_password == "145348":
             with col2:
                 st.write("<br><br>", unsafe_allow_html=True)
                 if st.button(f"❌ Sil", key=f"del_{media_file}"):
-                    # 🚨 DRIVE'DAN SİLME FONKSİYONUNU BURADAN SÖKTÜK REİSİM, ARTIK SADECE YERELİ SİLİYOR 🚨
                     if os.path.exists(local_file_path):
                         os.remove(local_file_path)
                     st.error(f"Ekrandan kaldırıldı: {media_file}")
