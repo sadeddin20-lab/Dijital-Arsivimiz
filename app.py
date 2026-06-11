@@ -127,10 +127,10 @@ else:
 st.title("📸 Hoş geldiniz!")
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
-### **Yaladığınız en güzel, en komik ve en özel anları buraya yükleyin. Teşekkürler ❤️**
+### **Yakaladığınız en güzel, en komik ve en özel anları buraya yükleyin. Teşekkürler ❤️**
 """)
 
-# Çirkin boş satır ve çizgiler kaldırıldı, Katalanca metin doğrudan nizamlıca bağlandı
+# Katalanca Karşılama
 st.title("📸 Benvinguts!")
 st.markdown("""
 ### **Aquesta nit, vosaltres també sou una mica els fotògrafs. 😄**
