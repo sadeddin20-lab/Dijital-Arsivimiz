@@ -79,17 +79,24 @@ if os.path.exists(BACKGROUND_IMAGE):
     """, unsafe_allow_html=True)
 
 # --- ANA SAYFA ---
+# 🚨 BAŞTAKİ BOZUK YAZI SİLİNDİ, TERTEMİZ YAPILDI 🚨
 st.markdown("""
     <div style="text-align: center; font-size: 36px; font-weight: bold; color: #C5A034; margin-top: 20px; text-shadow: 2px 2px 8px #000;">
-        𝓓𝓿Ğ𝓤𝓝  𝓜𝓪𝓻𝓲𝓪 ∞ 𝓒𝓪𝓷𝓫𝓮𝓻𝓴
+        𝓜𝓪𝓻𝓲𝓪 ∞ 𝓒𝓪𝓷𝓫𝓮𝓻𝓴
     </div>
 """, unsafe_allow_html=True)
 
-st.title("📸 Hoş geldiniz! / Benvinguts!")
+# 🚨 BAŞLIKLAR MOBİLDE ÜST ÜSTE BİNMEMESİ İÇİN AYRILDI VE DÜZENLENDİ 🚨
+st.markdown("<h1>📸 Hoş geldiniz!</h1>", unsafe_allow_html=True)
 st.markdown("""
 ### **Bu gecenin fotoğrafçısı biraz da sizsiniz. 😄**
 ### **Yakaladığınız anları buraya yükleyin. Teşekkürler ❤️**
----
+""")
+
+st.markdown("<br>", unsafe_allow_html=True) # Araya hafif bir boşluk
+
+st.markdown("<h1>📸 Benvinguts!</h1>", unsafe_allow_html=True)
+st.markdown("""
 ### **Aquesta nit, vosaltres també sou els fotògrafs. 😄**
 ### **Pugeu aquí els vostres moments. Gràcies ❤️**
 """)
